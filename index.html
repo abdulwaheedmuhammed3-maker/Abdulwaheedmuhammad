@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Quick-Converter</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #1e293b; padding: 2rem; border-radius: 12px; width: 100%; max-width: 360px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        input, select { width: 100%; padding: 0.75rem; margin-top: 0.5rem; margin-bottom: 1rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 6px; box-sizing: border-box; }
+        .result { font-size: 1.25rem; font-weight: bold; color: #38bdf8; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Crypto Converter</h2>
+        <p id="price-status" style="font-size: 0.85rem; color: #94a3b8;">Fetching live price...</p>
+        <label>Amount (BTC):</label>
+        <input type="number" id="amount" placeholder="0.00" value="1" oninput="convert()">
+        <label>Target Currency:</label>
+        <select id="currency" onchange="fetchPrice()">
+            <option value="usd">USD</option>
+            <option value="eur">EUR</option>
+        </select>
+        <div class="result" id="output">Converted: $0.00</div>
+    </div>
+
+    <script>
+        let currentRate = 0;
+        async function fetchPrice() {
+            const currency = document.getElementById('currency').value;
+            document.getElementById('price-status').innerText = 'Updating price...';
+            try {
+                const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=${currency}`);
+                const data = await res.json();
+                currentRate = data.bitcoin[currency];
+                document.getElementById('price-status').innerText = `1 BTC = ${currentRate.toLocaleString()} ${currency.toUpperCase()}`;
+                convert();
+            } catch (e) {
+                document.getElementById('price-status').innerText = 'Error fetching live price.';
+            }
+        }
+        function convert() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const currency = document.getElementById('currency').value.toUpperCase();
+            const total = amount * currentRate;
+            document.getElementById('output').innerText = `Converted: ${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currency}`;
+        }
+        fetchPrice();
+    </script>
+</body>
+</html>
